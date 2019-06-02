@@ -1,0 +1,5 @@
+add 0.02 penalty
+
+Adding penality needs to consider the scale of penalty.
+
+For large penalty, if the accumulative penalty is even greater than final reward, the agent will prefer stay and do nothing

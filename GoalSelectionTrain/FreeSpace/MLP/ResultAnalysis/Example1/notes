@@ -1,0 +1,7 @@
+Because there is no penality on the actions, the agent always prefer diagonal move
+
+reasons could also be that the target endthresh is set to step size
+
+Adding penality needs to consider the scale of penalty.
+
+For large penalty, if the accumulative penalty is even greater than final reward, the agent will prefer stay and do nothing
