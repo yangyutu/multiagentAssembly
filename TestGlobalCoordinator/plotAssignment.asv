@@ -1,0 +1,30 @@
+clear all
+close all
+
+target = load('targetOrder.txt');
+assignment = load('assignment.txt');
+
+for i = 1 : size(target,1)
+    numbers{i} = target(i,3);
+end
+figure(1)
+x = target(:,1);
+y = target(:,2);
+plot(x, y, 'o','markersize', 10,'linewidth',2,'color','black')
+text(x, y, numbers(1:length(x)), 'HorizontalAlignment','center', 'VerticalAlignment','middle')
+
+
+tx = target(:,1);
+ty = target(:,2);
+
+for i = 1 : size(target,1)
+    numbers{i} = assignment(i,3);
+end
+figure(2)
+x = assignment(:,1);
+y = assignment(:,2);
+plot(tx, ty, 'o','markersize', 10)
+hold on
+plot(x, y, 'o','markersize', 10)
+text(tx, ty, numbers(1:length(x)), 'HorizontalAlignment','center', 'VerticalAlignment','middle')
+text(x, y, numbers(1:length(x)), 'HorizontalAlignment','center', 'VerticalAlignment','middle')
