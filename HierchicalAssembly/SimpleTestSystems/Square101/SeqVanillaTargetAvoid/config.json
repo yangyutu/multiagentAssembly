@@ -1,5 +1,6 @@
 {
     "iniConfig":"TorusInitialConfigCPP.txt",
+    "iniConfig_":"Square101CPP.txt",
     "targetConfig": "Square101CPP.txt",
     "N": 101,
     "numThreads": 1,
@@ -18,11 +19,12 @@
     "GridWorldNStep": 100,
     "receptHalfWidth": 10,
     "coarsePixelSize": 10,
-    "totalSteps": 50000,
-    "arrivalDistThresh": 1.0,
-    "controlMode": "AllOn",
+    "totalSteps": 100000,
+    "arrivalDistThresh": 1,
+    "controlMode": "SequentialVanilla",
     "assignmentFreq": 10,
     "trajOutputNamePython": "HierControlTraj.txt",
     "OPOutputNamePython": "HierControlOP.txt",
-    "trajOutputIntervalPython": 100
+    "trajOutputIntervalPython": 100,
+    "targetAvoidFlag": true
 }

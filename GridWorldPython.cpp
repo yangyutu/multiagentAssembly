@@ -21,7 +21,8 @@ PYBIND11_MODULE(GridWorldPython, m) {
         .def(py::init<std::string, int>())
         .def("reset", &GridWorld::reset)
         .def("step", &GridWorld::stepWithSpeeds)
-    	.def("getObservation", &GridWorld::get_observation)
+    	.def("getObservation", &GridWorld::get_observation_multiple)
+    	.def("getTargetObservation", &GridWorld::get_targetObservation_multiple)
         .def("getPositions", &GridWorld::get_positions)
         .def("setIniConfig", &GridWorld::set_iniConfigs);
 }

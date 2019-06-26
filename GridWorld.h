@@ -1,4 +1,3 @@
-#pragma once
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <vector>
@@ -55,18 +54,20 @@ public:
     void initialize();
 
     // run step
-    py::array_t<int> get_observation();
-    py::array_t<int> get_observation_multiple(py::array_t<int> indexVec);
-    std::vector<int> get_observation_cpp();
-    std::vector<int> get_observation_multiple_cpp(std::vector<int> indexVec);
+    //py::array_t<int> get_observation();
+    py::array_t<int> get_observation_multiple(py::array_t<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
+    py::array_t<int> get_targetObservation_multiple(py::array_t<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
+    
+    //std::vector<int> get_observation_cpp();
+    std::vector<int> get_observation_multiple_cpp(std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
     py::array_t<double> get_positions();
     py::array_t<double> get_positions_multiple(py::array_t<int> indexVec);
 
     void set_iniConfigs(py::array_t<double> iniConfig);
-    void fill_observation(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, double pixelSize, double pixelThresh);
-    void fill_observation_multiple(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, std::vector<int> indexVec, double pixelSize, double pixelThresh);
+    //void fill_observation(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, double pixelSize, double pixelThresh);
+    void fill_observation_multiple(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
 
-    py::array_t<int> get_coarseObservation_multiple(py::array_t<int> indexVec);
+    //py::array_t<int> get_coarseObservation_multiple(py::array_t<int> indexVec);
     
     
     void stepWithSpeeds(py::array_t<double>& speeds);
@@ -84,8 +85,7 @@ private:
     int randomSeed;
     int receptHalfWidth;
     int obstaclePadding;
-    int rewardShareThresh, rewardShareCoeff;
-    double radius, coarsePixelSize, coarsePixelThresh;
+    double radius;
     json config;
     std::vector<double> rewards;
     std::unordered_map<CoorPair, int, CoorPairHash, CoorPairEqual> mapInfo;

@@ -1,8 +1,9 @@
 {
-    "iniConfig":"TorusInitialConfigCPP.txt",
-    "targetConfig": "Square101CPP.txt",
-    "N": 101,
-    "numThreads": 1,
+    "iniConfig":"torus3276CPP.txt",
+    "iniConfig_":"Square1609CPP.txt",
+    "targetConfig": "squareTargetN1609CPP.txt",
+    "N": 800,
+    "numThreads": 8,
     "radius": 1e-6,
     "dt": 0.0001,
     "Bpp": 2.29,
@@ -18,11 +19,13 @@
     "GridWorldNStep": 100,
     "receptHalfWidth": 10,
     "coarsePixelSize": 10,
-    "totalSteps": 50000,
-    "arrivalDistThresh": 1.0,
-    "controlMode": "AllOn",
+    "totalSteps": 1000000,
+    "arrivalDistThresh": 1,
+    "controlMode": "SequentialVanilla",
     "assignmentFreq": 10,
     "trajOutputNamePython": "HierControlTraj.txt",
     "OPOutputNamePython": "HierControlOP.txt",
-    "trajOutputIntervalPython": 100
+    "trajOutputIntervalPython": 100,
+    "loadAssignmentFlag": true,
+    "assignmentFile": "assignmentResults.pkl"
 }

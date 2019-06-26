@@ -18,6 +18,9 @@ ParticleSimulator::ParticleSimulator(std::string configName0, int randomSeed0){
     for(int i = 0; i < numP; i++){
         particles.push_back(particle_ptr(new ParticleSimulator::particle));
         nbList.push_back(std::vector<int>());
+        if (targetAvoidFlag) {
+            targets.push_back(particle_ptr(new ParticleSimulator::particle));
+        }
     }
 }
 
@@ -336,6 +339,23 @@ void ParticleSimulator::readxyz(const std::string filename) {
               
     }
     
+    if (targetAvoidFlag) {
+        std::ifstream is;
+        is.open(targetIniFile.c_str());
+        if (!is.good()){
+            std::cout << "ini target config file not exist" << std::endl;
+            exit(2);
+        }
+        std::string line;
+        double dum;
+        for (int i = 0; i < numP; i++) {
+            getline(is, line);
+            std::stringstream linestream(line);
+            linestream >> dum;
+            linestream >> targets[i]->r[0];
+            linestream >> targets[i]->r[1];
+        }            
+    }
     
     
     

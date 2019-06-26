@@ -70,6 +70,7 @@ public:
     
     void createInitialState();
     partConfig getCurrState(){return particles;}
+    partConfig getTargets(){return targets;}
     posArray getObstacles(){return obstacles;}
     double calEudDeviation();
     void readConfigFile();
@@ -86,7 +87,7 @@ private:
     void calForcesHelper_DL(double ri[3], double rj[3], double F[3],int i, int j);
     void buildNbList();
     void getWallInfo();
-    bool randomMoveFlag, obstacleFlag, wallFlag, constantPropelFlag;
+    bool randomMoveFlag, obstacleFlag, wallFlag, constantPropelFlag, targetAvoidFlag;
     static const int dimP = 2;
     static const double kb, T, vis;
     int randomSeed, numThreads;
@@ -106,10 +107,10 @@ private:
     std::vector<double> velocity={0.0,5.0e-6,5.0e-6}; // here is for simpication of binary actuation
 //    std::vector<double> velocity={0.0, 5.0e-6};
     int numControl;
-    partConfig particles;
+    partConfig particles, targets;
     posArray obstacles; 
 
-    std::string iniFile;
+    std::string iniFile, targetIniFile;
     double dt_, cutoff, mobility, diffusivity_r, diffusivity_t, transPreFactor, rotPreFactor;
     std::default_random_engine rand_generator;
     std::shared_ptr<std::normal_distribution<double>> rand_normal;
@@ -124,5 +125,5 @@ private:
     void readxyz(const std::string filename);
     void updateBodyFrameVec();
     void readObstacle();
-
+    
 };

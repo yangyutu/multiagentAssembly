@@ -5,11 +5,12 @@ import os
 from coordinator import globalCoordinator
 import GridWorldPython as gw
 from sklearn.metrics.pairwise import euclidean_distances
+import pickle
 import math
 import sys
 
 class HierchicalAssemblySimulator:
-    def __init__(self, configName, randomSeed = 1, metaTargetPlanner = None, pathPlanner = None):
+    def __init__(self, configName, randomSeed = 1, nets = None):
         """
         A model take in a particle configuration and actions and return updated a particle configuration
         """
@@ -18,6 +19,16 @@ class HierchicalAssemblySimulator:
             self.config = json.load(f)
 
         self.randomSeed = randomSeed
+        self.metaTargetPlanner = None
+        self.pathPlanner = None
+        self.targetAvoidPlanner = None
+
+        if nets is not None:
+            self.nets = nets
+            self.coarsePathPlanner = self.nets.get('metaTargetPlanner', None)
+            self.finePathPlanner = self.nets.get('pathPlanner', None)
+            self.targetAvoidPlanner = self.nets.get('targetAvoidPlanner', None)
+
         self.coordinator = globalCoordinator()
         self.model = gw.GridWorldPython(configName, randomSeed)
         self.read_config()
@@ -32,6 +43,16 @@ class HierchicalAssemblySimulator:
         self.controlMode = self.config['controlMode']
         self.controlModes = ['AllOn', 'SequentialVanilla', 'SequentialWithCoarseGoal', 'SequentialWithAll']
         self.trajOutputIntervalPython = self.config['trajOutputIntervalPython']
+        self.targetAvoidFlag = self.config.get('targetAvoidFlag', False)
+        self.coarsePixelSize = 10;
+        self.coarsePixelThresh = 0.5;
+        self.finePixelSize = 1;
+        self.finePixelThresh = 0.5;
+        if 'coarsePixelSize' in self.config:
+            self.coarsePixelSize = self.config["coarsePixelSize"]
+            self.coarsePixelThresh = math.sqrt(pow(self.coarsePixelSize / 2, 2))
+
+
         if self.controlMode not in self.controlModes:
             print('controlMode Not allowed!')
             exit(1)
@@ -64,9 +85,17 @@ class HierchicalAssemblySimulator:
         self.targets = np.array(iniConfig)
         self.targets = self.targets[np.lexsort(self.targets.T)]
         # get the whole coordination plan
+        print("perform target assignment and coordination")
 
-        self.orderIdx, self.levelOrder, self.assignment \
-            = self.coordinator.getGlobalOrderedAssignment(self.particles[:, 0:2], self.targets)
+        if not self.config['loadAssignmentFlag']:
+            self.orderIdx, self.levelOrder, self.assignment \
+                = self.coordinator.getGlobalOrderedAssignment(self.particles[:, 0:2], self.targets)
+            with open(self.config['assignmentFile'],'wb') as f:
+                pickle.dump([self.orderIdx, self.levelOrder, self.assignment], f)
+        else:
+            with open(self.config['assignmentFile'], 'rb') as f:
+                self.orderIdx, self.levelOrder, self.assignment = pickle.load(f)
+
 
         self.invAssignment = dict(zip(self.assignment.values(), self.assignment.keys()))
 
@@ -109,6 +138,21 @@ class HierchicalAssemblySimulator:
         self.finishSet = set()
         self.trajOutputFile = None
         self.OPOutputFile = None
+
+        if self.targetAvoidFlag:
+            self.constructTargetArea()
+
+    def constructTargetArea(self):
+        self.targetRegion = set()
+        DELTA_X = [-2, -1, 0, 1, 2]
+        DELTA_Y = [-2, -1, 0, 1, 2]
+        for target in self.assignedTargets:
+            for dx in DELTA_X:
+                for dy in DELTA_Y:
+                    self.targetRegion.add((int(target[0] + dx)),int(target[1] + dy))
+
+
+
     def outputAssignment(self):
         output = []
         for i, part in enumerate(self.particles[:, 0:2]):
@@ -135,8 +179,6 @@ class HierchicalAssemblySimulator:
         self.levelOrderIdx = 2
 
     def getAssignment(self):
-
-
 
         if self.controlMode in ['SequentialVanilla', 'SequentialLevelVanilla', 'SequentialWithCoarseGoal', 'SequentialWithAll']:
             if self.controlMode == 'SequentialLevelVanilla':
@@ -217,8 +259,39 @@ class HierchicalAssemblySimulator:
         else:
             return 0.0
 
+    def _getEscapeSpeeds(self):
+        observations = self.model.getObservation(np.array(self.coarseWorkingSet, dtype=np.int))
+        action = self.escapePathPlanner(observations)
+        for i1, i2 in enumerate(self.escapeSet):
+            self.assignedProxyTargets[i2] = self.particles[i2][0: 2] + action[i1]
+
+
+
     def _getProxyTarget(self, dist):
-        pass
+
+        self.assignedProxyTargets = self.assignedTargets.copy()
+
+        self.coarseWorkingSet = []
+
+        for i1, i2 in enumerate(self.workingSet):
+            if dist[i1] > self.coarsePlanThresh:
+                self.coarseWorkingSet.append(i2)
+
+        observations = self.model.getObservation(np.array(self.coarseWorkingSet, dtype=np.int))
+        targets
+        combinedStates = { 'target': targets, 'observation': observations}
+
+        action = self.coarsePathPlanner(combinedStates)
+        for i1, i2 in enumerate(self.coarseWorkingSet):
+            self.assignedProxyTargets[i2] = self.particles[i2][0: 2] + action[i1]
+
+
+
+
+    def constructCoarsePlanSet(self):
+
+
+
 
     def getControlledSpeeds(self):
 
@@ -231,7 +304,7 @@ class HierchicalAssemblySimulator:
         if self.stepCount % self.assignmentFreq == 0:
             self.getAssignment()
 
-        speeds = np.zeros(self.N)
+        self.speeds = np.zeros(self.N)
         if self.controlMode == 'AllOn':
             phi = self.particles[:, 2]
             projection = (self.assignedTargets[:, 0] - self.particles[:, 0]) \
@@ -239,7 +312,7 @@ class HierchicalAssemblySimulator:
             dist = np.sqrt(np.sum(np.square(self.assignedTargets - self.particles[:,0:2]), axis=1))
             projectionCos = projection / dist
             for i in range(self.N):
-                speeds[i] = self._calSpeedFromProjection(projection[i], projectionCos[i])
+                self.speeds[i] = self._calSpeedFromProjection(projection[i], projectionCos[i])
         elif self.controlMode == 'SequentialVanilla':
             phi = self.particles[self.workingSet, 2]
             projection = (self.assignedTargets[self.workingSet, 0] - self.particles[self.workingSet, 0]) \
@@ -247,8 +320,10 @@ class HierchicalAssemblySimulator:
             dist = np.sqrt(np.sum(np.square(self.assignedTargets[self.workingSet,:] - self.particles[self.workingSet, 0:2]), axis=1))
             projectionCos = projection / dist
             for i1, i2 in enumerate(self.workingSet):
-                speeds[i2] = self._calSpeedFromProjection(projection[i1], projectionCos[i1])
+                self.speeds[i2] = self._calSpeedFromProjection(projection[i1], projectionCos[i1])
         elif self.controlModes == 'SequentialWithCoarseGoal':
+
+            self.constructCoarsePlanSet()
             dist = np.sqrt(np.sum(np.square(self.assignedTargets[self.workingSet, :] - self.particles[self.workingSet, 0:2]),
                        axis=1))
             self.getProxyTargets(dist)
@@ -259,7 +334,33 @@ class HierchicalAssemblySimulator:
                        axis=1))
             projectionCos = projection / proxyDist
             for i1, i2 in enumerate(self.workingSet):
-                speeds[i2] = self._calSpeedFromProjection(projection[i1], projectionCos[i1])
+                self.speeds[i2] = self._calSpeedFromProjection(projection[i1], projectionCos[i1])
+        elif self.controlModes == 'SequentialWithAll':
+            dist = np.sqrt(np.sum(np.square(self.assignedTargets[self.workingSet, :] - self.particles[self.workingSet, 0:2]),
+                       axis=1))
+            self.getProxyTargets(dist)
+            phi = self.particles[self.workingSet, 2]
+            projection = (self.assignedProxyTargets[self.workingSet, 0] - self.particles[self.workingSet, 0]) \
+                         * np.cos(phi) + (self.assignedProxyTargets[self.workingSet, 1] - self.particles[self.workingSet, 1]) * np.sin(phi)
+            proxyDist = np.sqrt(np.sum(np.square(self.assignedTargets[self.workingSet, :] - self.particles[self.workingSet, 0:2]),
+                       axis=1))
+            projectionCos = projection / proxyDist
+            for i1, i2 in enumerate(self.workingSet):
+                self.speeds[i2] = self._calSpeedFromProjection(projection[i1], projectionCos[i1])
+
+
+
+
+        if self.targetAvoidFlag:
+            self.targetRegionIdx = []
+            for i in self.toDoSet:
+                pos = (int(self.particles[i,0]), int(self.particles[i,1]))
+                if pos in self.targetRegion:
+                    self.targetRegionIdx.append(i)
+
+
+            for i in self.targetRegionIdx:
+
 
         return speeds
 

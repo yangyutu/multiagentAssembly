@@ -18,26 +18,27 @@ void testSim(){
     simulator.close();
 
 }
+
 void testGridWorld(){
     
     int step = 5;
     GridWorld gw("config.json", 1);
-    gw.simulator->config["filetag"] = "GridWorld";
-    gw.simulator->readConfigFile();
+    //gw.simulator->config["filetag"] = "GridWorld";
+    //gw.simulator->readConfigFile();
     
-    gw.reset();
-    gw.get_observation_cpp();
+    //gw.reset();
+//    gw.get_observation_cpp();
     for(auto i = 0; i < step; ++i){
         std::cout << "step: " << i << std::endl;
         if(i%2 == 0){
             std::vector<double> actions(gw.numP, 1);
-            gw.stepWithSpeeds_cpp(actions, actions);
+      //      gw.stepWithSpeeds_cpp(actions, actions);
         }else{
             std::vector<double> actions(gw.numP, 2);
-            gw.stepWithSpeeds_cpp(actions, actions);
+      //      gw.stepWithSpeeds_cpp(actions, actions);
         }
         std::cout << "particle_phi: " << gw.simulator->getCurrState()[0]->phi << std::endl;
-        gw.get_observation_cpp();
+//        gw.get_observation_cpp();
     }
 
     std::cout << "done print" << std::endl;

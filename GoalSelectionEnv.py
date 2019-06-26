@@ -88,7 +88,7 @@ class GoalSelectionEnv:
         if 'distanceScale' in self.config:
             self.distanceScale = self.config['distanceScale']
 
-        self.obstaclePenalty = 1
+        self.obstaclePenalty = 0.1
         if 'obstaclePenalty' in self.config:
             self.obstaclePenalty = self.config['obstaclePenalty']
 
@@ -204,6 +204,7 @@ class GoalSelectionEnv:
             penalty, flag = self.obstaclePenaltyCal()
             reward += penalty
             if flag:
+                print("on Obstacle: ", self.currentState)
                 self.hindSightInfo['obstacle'] = True
                 self.currentState -= action
 
@@ -254,6 +255,10 @@ class GoalSelectionEnv:
             # set initial state
             print('target distance', distance)
             self.currentState = np.array([row - self.padding, col - self.padding], dtype=np.float32)
+
+        _, onObstacle = self.obstaclePenaltyCal()
+        if onObstacle:
+            print("initial config on obstacle!")
 
 
     def reset(self):
