@@ -41,6 +41,8 @@ typedef struct {
     }
 } CoorPairEqual;
 
+
+typedef std::unordered_map<CoorPair, int, CoorPairHash, CoorPairEqual> mapInfoType;
 class GridWorld {
 public:
     GridWorld(std::string configName, int randomSeed);
@@ -54,18 +56,17 @@ public:
     void initialize();
 
     // run step
-    //py::array_t<int> get_observation();
     py::array_t<int> get_observation_multiple(py::array_t<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
-    py::array_t<int> get_targetObservation_multiple(py::array_t<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
-    
-    //std::vector<int> get_observation_cpp();
+    py::array_t<int> get_targetObservation_multiple(py::array_t<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);    
     std::vector<int> get_observation_multiple_cpp(std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
+    std::vector<int> get_targetObservation_multiple_cpp(std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
+    
     py::array_t<double> get_positions();
     py::array_t<double> get_positions_multiple(py::array_t<int> indexVec);
 
     void set_iniConfigs(py::array_t<double> iniConfig);
     //void fill_observation(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, double pixelSize, double pixelThresh);
-    void fill_observation_multiple(const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
+    void fill_observation_multiple(mapInfoType map, const ParticleSimulator::partConfig& particles, std::vector<int>& linearSensorAll, std::vector<int> indexVec, double pixelSize, double pixelThresh, bool orientFlag);
 
     //py::array_t<int> get_coarseObservation_multiple(py::array_t<int> indexVec);
     
@@ -85,11 +86,14 @@ private:
     int randomSeed;
     int receptHalfWidth;
     int obstaclePadding;
-    double radius;
+    double radius, coarsePixelSize, coarsePixelThresh;
     json config;
     std::vector<double> rewards;
-    std::unordered_map<CoorPair, int, CoorPairHash, CoorPairEqual> mapInfo;
+    
+    mapInfoType targetMapInfo;
+    
     void read_map();
+    void fill_mapInfo(const ParticleSimulator::partConfig& particles);
     int mapRows, mapCols, obsMapRows, obsMapCols;
 };
 

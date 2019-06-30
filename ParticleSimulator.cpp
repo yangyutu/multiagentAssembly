@@ -94,7 +94,7 @@ void ParticleSimulator::readConfigFile(){
     
     //numControl = this->velocity.size();
     numThreads = 1;
-    if(config.contains("numThreads")){
+    if (config.contains("numThreads")){
         numThreads =  config["numThreads"];
         std::cout << "  Number of processors available = " << omp_get_num_procs() << "\n";   
         std::cout << "  Number of threads to be set = " << numThreads << "\n";     
@@ -106,6 +106,12 @@ void ParticleSimulator::readConfigFile(){
 
     
     this->rand_generator.seed(randomSeed);
+    targetAvoidFlag = false;
+    if (config.contains("targetAvoidFlag")) {
+        targetAvoidFlag = config["targetAvoidFlag"];
+        targetIniFile = config["targetConfig"];
+    }
+    
 }
 
 void ParticleSimulator::runHelper() {

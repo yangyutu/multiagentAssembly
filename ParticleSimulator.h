@@ -77,7 +77,7 @@ public:
     void close();
     void run_given_speeds(int steps, const std::vector<double>& speeds, const std::vector<double>& RotSpeeds);
     void run_given_speeds(int steps, const std::vector<double>& speeds);
-
+    bool targetAvoidFlag;
     int numP;
     json config;
 private:
@@ -87,7 +87,7 @@ private:
     void calForcesHelper_DL(double ri[3], double rj[3], double F[3],int i, int j);
     void buildNbList();
     void getWallInfo();
-    bool randomMoveFlag, obstacleFlag, wallFlag, constantPropelFlag, targetAvoidFlag;
+    bool randomMoveFlag, obstacleFlag, wallFlag, constantPropelFlag;
     static const int dimP = 2;
     static const double kb, T, vis;
     int randomSeed, numThreads;
